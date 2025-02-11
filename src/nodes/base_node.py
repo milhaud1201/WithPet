@@ -1,10 +1,11 @@
+from ..models.context import Context
 from ..models.graph_state import GraphState
 
 
 class BaseNode:
     def __init__(
         self,
-        context: str,
+        context: Context,
     ) -> None:
         self.context = context  # Shared context for LLM, DB connection, etc.
 
