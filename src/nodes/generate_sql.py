@@ -1,8 +1,8 @@
-from models.graph_state import GraphState
+from ..models.graph_state import GraphState
 from configs.schemas import SCHEMAS
 from configs.knowledge import busan_general_knowledge
 from configs.prompts import SQL_GENERATION_TEMPLATE
-from nodes.base_node import BaseNode
+from .base_node import BaseNode
 
 
 class GenerateSQLNode(BaseNode):

@@ -1,6 +1,6 @@
-from models.graph_state import GraphState
-from nodes.base_node import BaseNode
-from utils.data_utils import filter_csv_with_sql
+from ..models.graph_state import GraphState
+from .base_node import BaseNode
+from ..utils.data_utils import filter_csv_with_sql
 import pandas as pd
 import re
 

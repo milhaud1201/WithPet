@@ -1,5 +1,5 @@
-from models.graph_state import GraphState
-from nodes.base_node import BaseNode
+from ..models.graph_state import GraphState
+from .base_node import BaseNode
 
 
 class GetExampleNode(BaseNode):

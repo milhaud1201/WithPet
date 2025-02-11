@@ -1,21 +1,21 @@
 from langgraph.graph import END, StateGraph
-from models.graph_state import GraphState
-from models.context import Context
-from nodes.select_data_source import SelectDataNode
-from nodes.get_example import GetExampleNode
-from nodes.generate_sql import GenerateSQLNode
-from nodes.verify_sql import VerifySQLNode
-from nodes.perform_rag import PerformRAGNode
-from nodes.retrieve_from_web import WebSearchNode
-from nodes.execute_sql import ExecuteSQLNode
-from nodes.generate_final_answer import (
+from ..models.graph_state import GraphState
+from ..models.context import Context
+from ..nodes.select_data_source import SelectDataNode
+from ..nodes.get_example import GetExampleNode
+from ..nodes.generate_sql import GenerateSQLNode
+from ..nodes.verify_sql import VerifySQLNode
+from ..nodes.perform_rag import PerformRAGNode
+from ..nodes.retrieve_from_web import WebSearchNode
+from ..nodes.execute_sql import ExecuteSQLNode
+from ..nodes.generate_final_answer import (
     GenerateAnswerNode,
     HandleNoDataNode,
     HandleNotRelevantNode,
 )
-from nodes.routing import check_data_source, check_sql_status
+from ..nodes.routing import check_data_source, check_sql_status
 
-from utils.data_utils import load_csv_to_sqlite
+from ..utils.data_utils import load_csv_to_sqlite
 
 
 class SQLWorkflow:

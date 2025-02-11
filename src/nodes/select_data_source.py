@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
-from models.graph_state import GraphState
-from models.response_schema import RouteQuery
-from nodes.base_node import BaseNode
+from ..models.graph_state import GraphState
+from ..models.response_schema import RouteQuery
+from ..nodes.base_node import BaseNode
 from configs.prompts import SOURCE_ROUTING_PROMPT
 
 
