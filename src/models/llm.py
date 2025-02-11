@@ -1,8 +1,11 @@
-from langchain_openai import ChatOpenAI, OpenAI
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+
+import os
+
+from langchain_openai import ChatOpenAI, OpenAI
+
 
 CHATLLM = ChatOpenAI(
     model="gpt-4",
