@@ -25,11 +25,16 @@ class SQLWorkflow:
     내부적으로 SQLite를 사용하여 CSV 데이터를 관리한다.
     """
 
-    def __init__(self, llm_chat, llm_stream, vector_store_example):
+    def __init__(
+        self,
+        llm_chat,
+        llm_stream,
+        vector_store_example,
+    ) -> None:
         """
         Args:
             llm_chat: 모델 function call(Structured LLM)을 활용할 수 있는 LLM (ex. ChatOpenAI)
-            llm: 최종 답변 생성을 위한 LLM
+            llm_stream: 최종 답변 생성을 위한 LLM
         """
         self.csv_files = {"./data/PET_PLACES.csv": "PET_PLACES"}
         self.conn = load_csv_to_sqlite(self.csv_files)
@@ -37,11 +42,15 @@ class SQLWorkflow:
         self.llm_stream = llm_stream
         self.workflow = StateGraph(GraphState)
         self.context = Context(
-            llm_chat, llm_stream, self.conn, vector_store_example, None
+            llm_chat,
+            llm_stream,
+            self.conn,
+            vector_store_example,
+            None,
         )
         self.app = None
 
-    def setup_workflow(self):
+    def setup_workflow(self) -> StateGraph:
         select_data_node = SelectDataNode(self.context)
         get_example_node = GetExampleNode(self.context)
         generate_sql_node = GenerateSQLNode(self.context)
@@ -95,22 +104,31 @@ class SQLRAGWorkflow:
     """
 
     def __init__(
-        self, llm_chat, llm_stream, conn, vector_store_example, vector_store_data
+        self,
+        llm_chat,
+        llm_stream,
+        conn,
+        vector_store_example,
+        vector_store_data,
     ):
         """
         Args:
             llm_chat: 모델 function call(Structured LLM)을 활용할 수 있는 LLM (ex. ChatOpenAI)
-            llm: 최종 답변 생성을 위한 LLM
+            llm_stream: 최종 답변 생성을 위한 LLM
         """
         self.llm_chat = llm_chat
         self.llm_stream = llm_stream
         self.workflow = StateGraph(GraphState)
         self.context = Context(
-            llm_chat, llm_stream, conn, vector_store_example, vector_store_data
+            llm_chat,
+            llm_stream,
+            conn,
+            vector_store_example,
+            vector_store_data,
         )
         self.app = None
 
-    def setup_workflow(self):
+    def setup_workflow(self) -> StateGraph:
         select_data_node = SelectDataNode(self.context)
         get_example_node = GetExampleNode(self.context)
         generate_sql_node = GenerateSQLNode(self.context)
