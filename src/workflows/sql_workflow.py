@@ -1,3 +1,9 @@
+from typing import Optional
+
+from sqlite3 import Connection
+
+from langchain_openai import ChatOpenAI
+from langchain_community.vectorstores import FAISS
 from langgraph.graph import END, StateGraph
 from ..models.graph_state import GraphState
 from ..models.context import Context
@@ -27,9 +33,9 @@ class SQLWorkflow:
 
     def __init__(
         self,
-        llm_chat,
-        llm_stream,
-        vector_store_example,
+        llm_chat: ChatOpenAI,
+        llm_stream: ChatOpenAI,
+        vector_store_example: FAISS,
     ) -> None:
         """
         Args:
@@ -105,12 +111,12 @@ class SQLRAGWorkflow:
 
     def __init__(
         self,
-        llm_chat,
-        llm_stream,
-        conn,
-        vector_store_example,
-        vector_store_data,
-    ):
+        llm_chat: ChatOpenAI,
+        llm_stream: ChatOpenAI,
+        conn: Connection,
+        vector_store_example: FAISS,
+        vector_store_data: Optional[FAISS],
+    ) -> None:
         """
         Args:
             llm_chat: 모델 function call(Structured LLM)을 활용할 수 있는 LLM (ex. ChatOpenAI)
