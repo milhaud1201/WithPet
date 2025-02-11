@@ -24,7 +24,10 @@ LANGCHAIN_ENDPOINT = "https://api.smith.langchain.com"
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-st.set_page_config(page_title="반려동물 시설 가이드", page_icon="🐕")
+st.set_page_config(
+    page_title="반려동물 시설 가이드",
+    page_icon="🐕",
+)
 
 
 class ChatCallbackHandler(BaseCallbackHandler):
@@ -34,26 +37,52 @@ class ChatCallbackHandler(BaseCallbackHandler):
 
     message = ""
 
-    def on_llm_start(self, *args, **kwargs):
+    def on_llm_start(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
         """LLM이 시작될 때 호출됩니다. 토큰 누적용 빈 컨테이너를 만듭니다."""
         self.message_box = st.empty()
 
-    def on_llm_end(self, *args, **kwargs):
+    def on_llm_end(
+        self,
+        *args,
+        **kwargs,
+    ) -> None:
         """LLM이 종료될 때 호출됩니다. 최종 메시지를 저장합니다."""
         save_message(self.message, "ai")
 
-    def on_llm_new_token(self, token, *args, **kwargs):
+    def on_llm_new_token(
+        self,
+        token,
+        *args,
+        **kwargs,
+    ) -> None:
         """LLM이 새 토큰을 생성할 때마다 호출됩니다. 토큰을 누적해 UI에 표시합니다."""
         self.message += token
         self.message_box.markdown(self.message)
 
 
-def save_message(message: str, role: str) -> None:
+def save_message(
+    message: str,
+    role: str,
+) -> None:
     """메시지를 세션 스테이트에 저장합니다."""
-    st.session_state["messages"].append({"message": message, "role": role})
+    st.session_state["messages"].append(
+        {
+            "message": message,
+            "role": role,
+        }
+    )
 
 
-def send_message(message: str, role: str, save: bool = True, placeholder=None) -> None:
+def send_message(
+    message: str,
+    role: str,
+    save: bool = True,
+    placeholder=None,
+) -> None:
     """
     채팅 UI에 메시지를 출력합니다.
     save=True인 경우, 세션 스테이트에도 메시지를 저장합니다.
@@ -74,7 +103,11 @@ def send_message(message: str, role: str, save: bool = True, placeholder=None) -
 def paint_history() -> None:
     """세션 스테이트에 기록된 메시지를 모두 다시 출력합니다."""
     for msg in st.session_state["messages"]:
-        send_message(msg["message"], msg["role"], save=False)
+        send_message(
+            msg["message"],
+            msg["role"],
+            save=False,
+        )
 
 
 @st.cache_resource
@@ -229,7 +262,10 @@ def home() -> None:
                 query_text = f"{city} 지역의 {st.session_state.selected_category}{' ('+ ', '.join(st.session_state.selected_options)+ ')' if st.session_state.selected_options else ''}"
 
                 # 검색 버튼
-                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown(
+                    "<br>",
+                    unsafe_allow_html=True,
+                )
                 st.session_state.inputs = {"question": query_text}
                 st.session_state.trigger_search = True  # Flag to trigger app invoke
 
@@ -244,7 +280,10 @@ def home() -> None:
 
     # Process the request if search was triggered
     if st.session_state.get("trigger_search", False):
-        send_message(st.session_state.inputs["question"], "human")
+        send_message(
+            st.session_state.inputs["question"],
+            "human",
+        )
 
         with st.chat_message("ai"):
             placeholder = st.empty()
@@ -259,7 +298,11 @@ def home() -> None:
             response["data_source"] == "not_relevant"
             or response["sql_status"] == "no data"
         ):
-            send_message(response["answer"], "ai", placeholder)
+            send_message(
+                response["answer"],
+                "ai",
+                placeholder,
+            )
 
         # Reset trigger after processing
         st.session_state.trigger_search = False
