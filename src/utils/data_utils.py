@@ -1,7 +1,8 @@
+import os
+
 import sqlite3
 from sqlite3 import Connection
 import pandas as pd
-import os
 
 
 def load_csv_to_sqlite(
