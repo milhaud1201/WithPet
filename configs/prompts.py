@@ -1,5 +1,4 @@
 from langchain_core.prompts import PromptTemplate
-from configs.schemas import SCHEMAS
 
 SOURCE_ROUTING_PROMPT = f"""
 You are an expert at routing a user question to the appropriate data source. The data sources are described below:
