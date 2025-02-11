@@ -8,7 +8,6 @@ def ko_to_eng(
     query: str,
     llm: ChatOpenAI,
 ) -> str:
-
     prompt = PromptTemplate(
         template=template,
         input_variables=["query"],
