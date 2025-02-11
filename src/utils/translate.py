@@ -1,7 +1,13 @@
+from langchain_openai import ChatOpenAI
+
 from langchain_core.prompts import PromptTemplate
 
 
-def ko_to_eng(template: str, query: str, llm) -> str:
+def ko_to_eng(
+    template: str,
+    query: str,
+    llm: ChatOpenAI,
+) -> str:
 
     prompt = PromptTemplate(
         template=template,

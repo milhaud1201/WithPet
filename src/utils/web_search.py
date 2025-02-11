@@ -1,11 +1,19 @@
 from typing import Dict
+
 import os
+
+from langchain_openai import ChatOpenAI
 
 from langchain_core.prompts import PromptTemplate
 from langchain_community.utilities import SerpAPIWrapper
 
 
-def web_search(template: str, serpapi_params: Dict[str, str], query: str, llm) -> str:
+def web_search(
+    template: str,
+    serpapi_params: Dict[str, str],
+    query: str,
+    llm: ChatOpenAI,
+) -> str:
 
     prompt = PromptTemplate(
         template=template,
