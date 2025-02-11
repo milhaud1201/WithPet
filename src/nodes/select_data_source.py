@@ -6,7 +6,10 @@ from configs.prompts import SOURCE_ROUTING_PROMPT
 
 
 class SelectDataNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         chatllm = self.context.llm
         question = state["question"]
 

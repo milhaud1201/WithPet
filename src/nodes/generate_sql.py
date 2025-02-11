@@ -6,7 +6,10 @@ from .base_node import BaseNode
 
 
 class GenerateSQLNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         chatllm = self.context.llm
         data_source = state["data_source"]
         question = state["question"]

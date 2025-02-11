@@ -8,7 +8,10 @@ from .base_node import BaseNode
 
 
 class WebSearchNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         chatllm = self.context.llm
         query = state["question"]
 

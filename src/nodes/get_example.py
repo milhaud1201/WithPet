@@ -3,7 +3,10 @@ from .base_node import BaseNode
 
 
 class GetExampleNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         data_source = state["data_source"]
         question = state["question"]
 

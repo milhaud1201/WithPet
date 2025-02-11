@@ -4,7 +4,10 @@ from .base_node import BaseNode
 
 
 class PerformRAGNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         question = state["question"]
         data_source = state["data_source"]
         filtered_data = state["filtered_data"]

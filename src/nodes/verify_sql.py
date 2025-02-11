@@ -26,7 +26,10 @@ columns = {
 
 
 class VerifySQLNode(BaseNode):
-    def execute(self, state: GraphState) -> GraphState:
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         response = state["sql_response"]
         data_source = state["data_source"]
 

@@ -1,6 +1,15 @@
+from ..models.graph_state import GraphState
+
+
 class BaseNode:
-    def __init__(self, context):
+    def __init__(
+        self,
+        context: str,
+    ) -> None:
         self.context = context  # Shared context for LLM, DB connection, etc.
 
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         raise NotImplementedError("Subclasses must implement the 'execute' method.")

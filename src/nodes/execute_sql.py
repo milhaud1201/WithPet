@@ -6,7 +6,10 @@ from .base_node import BaseNode
 
 
 class ExecuteSQLNode(BaseNode):
-    def execute(self, state):
+    def execute(
+        self,
+        state: GraphState,
+    ) -> GraphState:
         response = state["sql_response"]
         trial_num = state.get("trial_num", 0)
         data_source = state["data_source"]
