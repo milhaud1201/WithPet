@@ -1,13 +1,9 @@
 import streamlit as st
-import os
-import time
 
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from models.llm import CHATLLM
-from workflows.sql_workflow import SQLWorkflow
-from configs.examples import EXAMPLES
+from src.models.llm import CHATLLM
+from src.workflows.sql_workflow import SQLWorkflow
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import FAISS
 from langchain_core.tracers import LangChainTracer
 from langchain.callbacks.manager import CallbackManager
@@ -78,6 +74,7 @@ def paint_history() -> None:
     """세션 스테이트에 기록된 메시지를 모두 다시 출력합니다."""
     for msg in st.session_state["messages"]:
         send_message(msg["message"], msg["role"], save=False)
+
 
 @st.cache_resource
 def get_embeddings(api_key):
