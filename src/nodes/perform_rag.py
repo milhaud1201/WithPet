@@ -1,6 +1,7 @@
+from .base_node import BaseNode
+
 from ..models.graph_state import GraphState
 from ..utils.data_utils import format_docs_with_metadata, format_dataframe
-from .base_node import BaseNode
 
 
 class PerformRAGNode(BaseNode):

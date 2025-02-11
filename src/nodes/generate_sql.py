@@ -1,7 +1,7 @@
-from ..models.graph_state import GraphState
 from configs.schemas import SCHEMAS
-from configs.knowledge import busan_general_knowledge
 from configs.prompts import SQL_GENERATION_TEMPLATE
+
+from ..models.graph_state import GraphState
 from .base_node import BaseNode
 
 
