@@ -1,0 +1,2 @@
+def pipeline() -> None:
+    pass
