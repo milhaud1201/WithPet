@@ -37,7 +37,11 @@ class VerifySQLNode(BaseNode):
         response = state["sql_response"]
         data_source = state["data_source"]
 
-        match = re.search(r"<SQL>(.*?)</SQL>", response, re.DOTALL)
+        match = re.search(
+            r"<SQL>(.*?)</SQL>",
+            response,
+            re.DOTALL,
+        )
         if match:
             sql_query = match.group(1).strip()
         else:
