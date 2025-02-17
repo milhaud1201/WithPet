@@ -13,13 +13,16 @@ class SelectDataNode(BaseNode):
         self,
         state: GraphState,
     ) -> GraphState:
-        chatllm = self.context.llm
+        chat_llm = self.context.llm
         question = state["question"]
 
-        structured_llm = chatllm.with_structured_output(RouteQuery)
+        structured_llm = chat_llm.with_structured_output(RouteQuery)
 
         prompt = ChatPromptTemplate.from_messages(
-            [("system", SOURCE_ROUTING_PROMPT), ("human", "{question}")]
+            [
+                ("system", SOURCE_ROUTING_PROMPT),
+                ("human", "{question}"),
+            ]
         )
 
         # Define router
