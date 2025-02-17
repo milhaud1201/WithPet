@@ -13,12 +13,14 @@ class WebSearchNode(BaseNode):
         self,
         state: GraphState,
     ) -> GraphState:
-        chatllm = self.context.llm
+        chat_llm = self.context.llm
         query = state["question"]
 
         default_translate_params = DefaultTranslateParams()
         translated = ko_to_eng(
-            template=default_translate_params.template, query=query, llm=chatllm
+            template=default_translate_params.template,
+            query=query,
+            llm=chat_llm,
         )
 
         default_web_params = DefaultWebParams()
@@ -26,7 +28,7 @@ class WebSearchNode(BaseNode):
             template=default_web_params.template,
             serpapi_params=default_web_params.serpapi_params,
             query=translated,
-            llm=chatllm,
+            llm=chat_llm,
         )
         print(output)
         return GraphState(web_response=output.content)
