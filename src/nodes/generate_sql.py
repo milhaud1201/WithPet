@@ -10,13 +10,16 @@ class GenerateSQLNode(BaseNode):
         self,
         state: GraphState,
     ) -> GraphState:
-        chatllm = self.context.llm
+        chat_llm = self.context.llm
         data_source = state["data_source"]
         question = state["question"]
         examples = state["examples"]
-        schema = SCHEMAS.get(data_source, {})
+        schema = SCHEMAS.get(
+            data_source,
+            {},
+        )
 
-        sql_chain = SQL_GENERATION_TEMPLATE | chatllm
+        sql_chain = SQL_GENERATION_TEMPLATE | chat_llm
         response = sql_chain.invoke(
             {
                 "question": question,
@@ -28,4 +31,7 @@ class GenerateSQLNode(BaseNode):
         )
 
         print("\n", response.content)
-        return GraphState(schema=schema, sql_response=response.content)
+        return GraphState(
+            schema=schema,
+            sql_response=response.content,
+        )
