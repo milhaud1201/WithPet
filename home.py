@@ -1,8 +1,6 @@
 import streamlit as st
 
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.callbacks.manager import CallbackManager
-from langchain_core.tracers import LangChainTracer
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
@@ -13,19 +11,12 @@ from src.workflows.sql_workflow import SQLWorkflow
 # OpenAI API 키 로드
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
-# Langsmith tracing을 위한 키 로드
-LANGCHAIN_API_KEY = st.secrets["LANGCHAIN_API_KEY"]
-LANGCHAIN_PROJECT = st.secrets["LANGCHAIN_PROJECT"]
-LANGCHAIN_TRACING_V2 = "true"
-LANGCHAIN_ENDPOINT = "https://api.smith.langchain.com"
-
-
 # 메시지 세션 스테이트 초기화
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
 st.set_page_config(
-    page_title="반려동물 시설 가이드",
+    page_title="WithPet",
     page_icon="🐕",
 )
 
@@ -51,7 +42,10 @@ class ChatCallbackHandler(BaseCallbackHandler):
         **kwargs,
     ) -> None:
         """LLM이 종료될 때 호출됩니다. 최종 메시지를 저장합니다."""
-        save_message(self.message, "ai")
+        save_message(
+            self.message,
+            "ai",
+        )
 
     def on_llm_new_token(
         self,
@@ -97,7 +91,10 @@ def send_message(
             st.markdown(message)  # Normal UI message if no placeholder
 
     if save:
-        save_message(message, role)
+        save_message(
+            message,
+            role,
+        )
 
 
 def paint_history() -> None:
@@ -111,14 +108,11 @@ def paint_history() -> None:
 
 
 @st.cache_resource
-def get_embeddings(api_key):
+def get_embeddings(api_key: str) -> OpenAIEmbeddings:
     return OpenAIEmbeddings(openai_api_key=api_key)
 
 
 def home() -> None:
-    tracer = LangChainTracer(project_name=LANGCHAIN_PROJECT)
-    callback_manager = CallbackManager([tracer])
-
     chat_callback_handler = ChatCallbackHandler()
 
     llm_stream = ChatOpenAI(
@@ -138,7 +132,7 @@ def home() -> None:
     st.markdown(
         """
         <h2 style='text-align: center; color: #FF914D;'>
-            🐾 반려동물 동반 시설 가이드 🐾
+            🐾 WithPet: 반려동물 동반 시설 가이드 🐾
         </h2>
         """,
         unsafe_allow_html=True,
@@ -163,9 +157,9 @@ def home() -> None:
         ">
             <h5 style="color: #FF6B00;">💡 이용 가능한 질문 예시</h5>
             <ul style="font-size: 16px; color: #333;">
-                <li>🏥 <b>강남구 신사동</b>에 <b>일요일</b>에도 영업하는 동물병원</b>이 있나요?</li>
-                <li>☕ <b>부산 동구</b>에 <b>주차 가능한</b> <b>카페</b> 알려줘.</li>
-                <li>🏡 <b>인천</b>에 있는 <b>반려동물 추가 요금 없는 펜션</b>을 찾아주세요.</li>
+                <li>🏥 <b>강남구 신사동</b>에 <b>일요일</b>에도 영업하는 <b>동물병원</b>이 있나요?</li>
+                <li>☕ <b>부산 동구</b>에 <b>주차 가능한</b> <b>카페</b>를 알려주세요.</li>
+                <li>🏡 <b>인천</b>에 있는 <b>반려동물 추가 요금 없는 펜션</b> 찾아줘.</li>
             </ul>
         </div>
         """,
@@ -178,10 +172,10 @@ def home() -> None:
                 <i>※ 해당 챗봇이 제공하는 모든 시설은 반려동물 동반 가능 시설입니다.</i>
             </p>
         </div>
+        <br>
         """,
         unsafe_allow_html=True,
     )
-    st.markdown("<br><br>", unsafe_allow_html=True)
 
     # Initialize session state for user selections
     if "selected_category" not in st.session_state:
@@ -196,7 +190,21 @@ def home() -> None:
 
         # Use `st.form` to prevent auto-rerun for filters
         with st.form("filter_form"):
-            st.markdown("### 📍 지역을 선택하세요")
+            st.markdown(
+                """
+                <h1 style="display: flex; justify-content: left; align-items: center;">
+                    🚀 Quick Search 
+                    <span style="font-size: 12px; vertical-align: sub; margin-left: 8px; cursor: pointer;" 
+                        title="지역과 시설 유형을 선택한 후 검색하기를 클릭하세요.">
+                        ℹ️
+                    </span>
+                </h1>
+                <br>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown("### 📍 지역")
             city = st.selectbox(
                 "지역 선택",
                 [
@@ -253,6 +261,7 @@ def home() -> None:
                 else:
                     selected_values.discard(key)  # Remove unselected option
 
+            st.markdown("<br>", unsafe_allow_html=True)
             submitted = st.form_submit_button("🔎 검색하기")
 
             if submitted:
@@ -261,11 +270,6 @@ def home() -> None:
 
                 query_text = f"{city} 지역의 {st.session_state.selected_category}{' ('+ ', '.join(st.session_state.selected_options)+ ')' if st.session_state.selected_options else ''}"
 
-                # 검색 버튼
-                st.markdown(
-                    "<br>",
-                    unsafe_allow_html=True,
-                )
                 st.session_state.inputs = {"question": query_text}
                 st.session_state.trigger_search = True  # Flag to trigger app invoke
 
@@ -280,10 +284,7 @@ def home() -> None:
 
     # Process the request if search was triggered
     if st.session_state.get("trigger_search", False):
-        send_message(
-            st.session_state.inputs["question"],
-            "human",
-        )
+        send_message(st.session_state.inputs["question"], "human")
 
         with st.chat_message("ai"):
             placeholder = st.empty()
@@ -298,11 +299,7 @@ def home() -> None:
             response["data_source"] == "not_relevant"
             or response["sql_status"] == "no data"
         ):
-            send_message(
-                response["answer"],
-                "ai",
-                placeholder,
-            )
+            send_message(response["answer"], "ai", placeholder)
 
         # Reset trigger after processing
         st.session_state.trigger_search = False
