@@ -10,7 +10,7 @@ class GenerateAnswerNode(BaseNode):
         self,
         state: GraphState,
     ) -> GraphState:
-        chatllm = self.context.llm_stream
+        chat_llm = self.context.llm_stream
         question = state["question"]
         schema = state["schema"]
         data = (
@@ -19,7 +19,7 @@ class GenerateAnswerNode(BaseNode):
             else state["filtered_data"]
         )
 
-        chain = ANSWER_GENERATION_TEMPLATE | chatllm
+        chain = ANSWER_GENERATION_TEMPLATE | chat_llm
         final_answer = chain.invoke(
             {
                 "question": question,
