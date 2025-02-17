@@ -17,8 +17,8 @@ def load_csv_to_sqlite(
         try:
             df = pd.read_csv(file_path)
             df.to_sql(
-                table_name,
-                conn,
+                name=table_name,
+                con=conn,
                 index=False,
                 if_exists="replace",
             )
