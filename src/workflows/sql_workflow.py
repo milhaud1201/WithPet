@@ -38,9 +38,6 @@ if "LANGSMITH_PROJECT" not in st.session_state:
 os.environ["LANGSMITH_TRACING"] = "true"
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 
-# 환경 변수가 제대로 설정되었는지 확인
-print(os.environ.get("LANGSMITH_PROJECT"))
-
 
 class SQLWorkflow:
     """
@@ -66,11 +63,11 @@ class SQLWorkflow:
         self.llm_stream = llm_stream
         self.workflow = StateGraph(GraphState)
         self.context = Context(
-            llm_chat,
-            llm_stream,
-            self.conn,
-            vector_store_example,
-            None,
+            llm=llm_chat,
+            llm_stream=llm_stream,
+            conn=self.conn,
+            vs_example=vector_store_example,
+            vs_data=None,
         )
         self.app = None
 
@@ -144,11 +141,11 @@ class SQLRAGWorkflow:
         self.llm_stream = llm_stream
         self.workflow = StateGraph(GraphState)
         self.context = Context(
-            llm_chat,
-            llm_stream,
-            conn,
-            vector_store_example,
-            vector_store_data,
+            llm=llm_chat,
+            llm_stream=llm_stream,
+            conn=conn,
+            vs_example=vector_store_example,
+            vs_data=vector_store_data,
         )
         self.app = None
 
