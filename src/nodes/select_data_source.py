@@ -5,7 +5,7 @@ from configs.prompts import SOURCE_ROUTING_PROMPT
 from .base_node import BaseNode
 
 from ..modules.graph_state import GraphState
-from ..modules.response_schema import RouteQuery
+from ..modules.response_schema import QueryRouter
 
 
 class SelectDataNode(BaseNode):
@@ -16,7 +16,7 @@ class SelectDataNode(BaseNode):
         chat_llm = self.context.llm
         question = state["question"]
 
-        structured_llm = chat_llm.with_structured_output(RouteQuery)
+        structured_llm = chat_llm.with_structured_output(QueryRouter)
 
         prompt = ChatPromptTemplate.from_messages(
             [
