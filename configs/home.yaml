@@ -1,8 +1,8 @@
 # @package _global_
 defaults:
+  - llms: llms
   - prompts: prompts
   - prompt_templates: prompt_templates
-  - examples: examples
   - schemas: schemas
   - source_columns: source_columns
   - hydra: hydra
@@ -21,12 +21,11 @@ llm:
 
 llm_stream:
   model: gpt-4o
-  streaming: True
   temperature: 0.0
+  streaming: True
 
 data_path: ${connected_dir}/data
 data_file_name: PET_PLACES
-source_type: pet_places
 
 prompt_type:
   sql_generation_template: sql_generation_template
