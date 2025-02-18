@@ -27,17 +27,17 @@ class WebSearchNode(BaseNode):
         self,
         state: GraphState,
     ) -> GraphState:
-        chat_llm = self.context.llm
+        llm = self.context.llm
         query = state["question"]
 
         translated = self.ko_to_eng(
             query=query,
-            llm=chat_llm,
+            llm=llm,
         )
 
         output = self.web_search(
             query=translated,
-            llm=chat_llm,
+            llm=llm,
         )
         print(output)
         return GraphState(web_response=output.content)
