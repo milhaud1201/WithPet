@@ -24,8 +24,7 @@ class SetUp:
 
     def get_llm(self) -> ChatOpenAI:
         llm: ChatOpenAI = instantiate(
-            self.config.llm,
-            openai_api_key=self.config.openai_api_key,
+            self.config.llms.llm,
         )
         return llm
 
@@ -34,8 +33,7 @@ class SetUp:
         callbacks: BaseCallbackHandler,
     ) -> ChatOpenAI:
         llm_stream: ChatOpenAI = instantiate(
-            self.config.llm_stream,
-            openai_api_key=self.config.openai_api_key,
+            self.config.llms.llm_stream,
             callbacks=[callbacks],
         )
         return llm_stream
