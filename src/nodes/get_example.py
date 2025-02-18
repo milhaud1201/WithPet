@@ -12,7 +12,9 @@ class GetExampleNode(BaseNode):
         question = state["question"]
 
         examples_topk = self.context.vs_example.similarity_search(
-            question, k=10, filter={"source": data_source}
+            question,
+            k=10,
+            filter={"source": data_source},
         )
         examples_format = "\n\n".join(
             [
