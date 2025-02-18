@@ -4,7 +4,7 @@ from langchain.callbacks.base import BaseCallbackHandler
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
-from src.models.llm import CHATLLM
+from src.modules.llm import CHATLLM
 from src.workflows.sql_workflow import SQLWorkflow
 
 

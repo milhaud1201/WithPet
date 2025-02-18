@@ -4,7 +4,7 @@ import pandas as pd
 
 from .base_node import BaseNode
 
-from ..models.graph_state import GraphState
+from ..modules.graph_state import GraphState
 from ..utils.data_utils import filter_csv_with_sql, format_dataframe
 
 

@@ -11,8 +11,8 @@ from langchain_community.vectorstores import FAISS
 
 from langgraph.graph import END, StateGraph
 
-from ..models.graph_state import GraphState
-from ..models.context import Context
+from ..modules.graph_state import GraphState
+from ..modules.context import Context
 
 from ..nodes.select_data_source import SelectDataNode
 from ..nodes.get_example import GetExampleNode

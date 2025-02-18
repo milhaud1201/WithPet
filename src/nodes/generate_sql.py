@@ -1,7 +1,7 @@
 from configs.schemas import SCHEMAS
 from configs.prompts import SQL_GENERATION_TEMPLATE
 
-from ..models.graph_state import GraphState
+from ..modules.graph_state import GraphState
 from .base_node import BaseNode
 
 

@@ -1,5 +1,5 @@
-from ..models.context import Context
-from ..models.graph_state import GraphState
+from ..modules.context import Context
+from ..modules.graph_state import GraphState
 
 
 class BaseNode:

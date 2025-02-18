@@ -1,4 +1,4 @@
-from ..models.graph_state import GraphState
+from ..modules.graph_state import GraphState
 
 
 def check_data_source(state: GraphState) -> GraphState:

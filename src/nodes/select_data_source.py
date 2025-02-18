@@ -4,8 +4,8 @@ from configs.prompts import SOURCE_ROUTING_PROMPT
 
 from .base_node import BaseNode
 
-from ..models.graph_state import GraphState
-from ..models.response_schema import RouteQuery
+from ..modules.graph_state import GraphState
+from ..modules.response_schema import RouteQuery
 
 
 class SelectDataNode(BaseNode):

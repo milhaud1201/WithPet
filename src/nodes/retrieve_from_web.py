@@ -3,7 +3,7 @@ from configs.default_web_params import DefaultWebParams
 
 from .base_node import BaseNode
 
-from ..models.graph_state import GraphState
+from ..modules.graph_state import GraphState
 from ..utils.translate import ko_to_eng
 from ..utils.web_search import web_search
 
