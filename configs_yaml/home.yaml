@@ -1,6 +1,6 @@
 # @package _global_
 defaults:
-  - search_manager: search_manager
+  - prompts: prompts
   - hydra: hydra
 
 package_name: TourGuideRAG
