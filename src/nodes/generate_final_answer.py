@@ -1,4 +1,4 @@
-from configs.prompts import ANSWER_GENERATION_TEMPLATE
+from langchain_core.prompts import PromptTemplate
 
 from .base_node import BaseNode
 
@@ -6,11 +6,18 @@ from ..modules.graph_state import GraphState
 
 
 class GenerateAnswerNode(BaseNode):
+    def __init__(
+        self,
+        answer_generation_template: PromptTemplate,
+    ) -> None:
+        super().__init__()
+        self.answer_generation_template = answer_generation_template
+
     def execute(
         self,
         state: GraphState,
     ) -> GraphState:
-        chat_llm = self.context.llm_stream
+        llm = self.context.llm_stream
         question = state["question"]
         schema = state["schema"]
         data = (
@@ -19,7 +26,7 @@ class GenerateAnswerNode(BaseNode):
             else state["filtered_data"]
         )
 
-        chain = ANSWER_GENERATION_TEMPLATE | chat_llm
+        chain = self.answer_generation_template | llm
         final_answer = chain.invoke(
             {
                 "question": question,

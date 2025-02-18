@@ -1,7 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-from configs.prompts import SOURCE_ROUTING_PROMPT
-
 from .base_node import BaseNode
 
 from ..modules.graph_state import GraphState
@@ -9,18 +7,25 @@ from ..modules.response_schema import QueryRouter
 
 
 class SelectDataNode(BaseNode):
+    def __init__(
+        self,
+        source_routing_prompt: str,
+    ) -> None:
+        super().__init__()
+        self.source_routing_prompt = source_routing_prompt
+
     def execute(
         self,
         state: GraphState,
     ) -> GraphState:
-        chat_llm = self.context.llm
+        llm = self.context.llm
         question = state["question"]
 
-        structured_llm = chat_llm.with_structured_output(QueryRouter)
+        structured_llm = llm.with_structured_output(QueryRouter)
 
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", SOURCE_ROUTING_PROMPT),
+                ("system", self.source_routing_prompt),
                 ("human", "{question}"),
             ]
         )

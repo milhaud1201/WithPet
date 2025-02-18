@@ -1,25 +1,35 @@
-from configs.schemas import SCHEMAS
-from configs.prompts import SQL_GENERATION_TEMPLATE
+from typing import Dict
+
+from langchain_core.prompts import PromptTemplate
 
 from ..modules.graph_state import GraphState
 from .base_node import BaseNode
 
 
 class GenerateSQLNode(BaseNode):
+    def __init__(
+        self,
+        schemas: Dict[str, str],
+        sql_generation_template: PromptTemplate,
+    ) -> None:
+        super().__init__()
+        self.schemas = schemas
+        self.sql_generation_template = sql_generation_template
+
     def execute(
         self,
         state: GraphState,
     ) -> GraphState:
-        chat_llm = self.context.llm
+        llm = self.context.llm
         data_source = state["data_source"]
         question = state["question"]
         examples = state["examples"]
-        schema = SCHEMAS.get(
+        schema = self.schemas.get(
             data_source,
             {},
         )
 
-        sql_chain = SQL_GENERATION_TEMPLATE | chat_llm
+        sql_chain = self.sql_generation_template | llm
         response = sql_chain.invoke(
             {
                 "question": question,
