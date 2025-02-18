@@ -41,10 +41,7 @@ class SetUp:
         return llm_stream
 
     def get_connection(self) -> Connection:
-        data_path = os.path.join(
-            self.config.data_path,
-            self.config.data_file_name,
-        )
+        data_path = f"{self.config.data_path}/{self.config.data_file_name}.csv"
         data_file_name = self.config.data_file_name
         conn = load_csv_to_sqlite({data_path: data_file_name})
         return conn
