@@ -153,6 +153,7 @@ def pipeline(
     workflow = SQLWorkflow(
         context=context,
         source_routing_prompt=source_routing_prompt,
+        schemas=config.schemas,
         sql_generation_template=sql_generation_template,
         source_columns=source_columns,
         answer_generation_template=answer_generation_template,
