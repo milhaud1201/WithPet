@@ -1,33 +1,39 @@
 # @package _global_
 defaults:
   - prompts: prompts
+  - prompt_templates: prompt_templates
+  - examples: examples
+  - schemas: schemas
+  - source_columns: source_columns
   - hydra: hydra
 
 package_name: TourGuideRAG
+project_dir: ${oc.env:PROJECT_DIR}/${package_name}
+connected_dir: ${oc.env:CONNECTED_DIR}/${package_name}
 usage: withpet
-
 
 openai_api_key: ${oc.env:OPENAI_API_KEY}
 serpapi_api_key: ${oc.env:SERPAPI_API_KEY}
 
-data: 
-  data/PET_PLACES.csv: PET_PLACES
-
-chat_llm:
+llm:
   model: gpt-4o
   temperature: 0.0
-  openai_api_key: ${openai_api_key}
 
 llm_stream:
   model: gpt-4o
   streaming: True
   temperature: 0.0
-  openai_api_key: ${openai_api_key}
 
-search_llm:
-  model: gpt-4o
-  temperature: 0.0
-  openai_api_key: ${openai_api_key}
+data_path: ${connected_dir}/data
+data_file_name: PET_PLACES
+source_type: pet_places
+
+prompt_type:
+  sql_generation_template: sql_generation_template
+  answer_generation_template: answer_generation_template
+
+vector_store_example: faiss_example
+vector_store_data: faiss_data
 
 web_search:
   translate_template: "You are a professional translator. Given the query '{query}', provide the best result of Korean to English."
@@ -35,8 +41,6 @@ web_search:
   serpapi_api_key: ${serpapi_api_key}
   serpapi_params:
     engine: google
-
-table_column_name: ingredients
 
 project_name: ${package_name}-${usage}
 
