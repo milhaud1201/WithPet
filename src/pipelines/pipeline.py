@@ -145,7 +145,7 @@ def pipeline(
     sql_generation_template = setup.get_prompt_template(
         prompt_type=config.prompt_type.sql_generation_template
     )
-    source_columns = setup.get_source_columns(source_type=config.source_type)
+    source_columns = setup.get_source_columns()
     answer_generation_template = setup.get_prompt_template(
         prompt_type=config.prompt_type.answer_generation_template
     )
