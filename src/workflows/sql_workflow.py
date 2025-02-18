@@ -29,6 +29,7 @@ class SQLWorkflow:
         self,
         context: Context,
         source_routing_prompt: str,
+        schemas: Dict[str, str],
         sql_generation_template: PromptTemplate,
         source_columns: Dict[str, List[str]],
         answer_generation_template: PromptTemplate,
@@ -42,6 +43,7 @@ class SQLWorkflow:
         self.app = None
         self.context = context
         self.source_routing_prompt = source_routing_prompt
+        self.schemas = schemas
         self.sql_generation_template = sql_generation_template
         self.source_columns = source_columns
         self.answer_generation_template = answer_generation_template
@@ -54,6 +56,7 @@ class SQLWorkflow:
         get_example_node = GetExampleNode(context=self.context)
         generate_sql_node = GenerateSQLNode(
             context=self.context,
+            schemas=self.schemas,
             sql_generation_template=self.sql_generation_template,
         )
         verify_sql_node = VerifySQLNode(
