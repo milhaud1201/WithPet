@@ -6,6 +6,7 @@ import pandas as pd
 
 from .base_node import BaseNode
 
+from ..modules.context import Context
 from ..modules.graph_state import GraphState
 from ..utils.data_utils import filter_csv_with_sql
 
@@ -13,9 +14,10 @@ from ..utils.data_utils import filter_csv_with_sql
 class VerifySQLNode(BaseNode):
     def __init__(
         self,
+        context: Context,
         source_columns: Dict[str, List[str]],
     ) -> None:
-        super().__init__()
+        super().__init__(context=context)
         self.source_columns = source_columns
 
     def execute(

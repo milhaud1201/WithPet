@@ -2,17 +2,20 @@ from typing import Dict
 
 from langchain_core.prompts import PromptTemplate
 
-from ..modules.graph_state import GraphState
 from .base_node import BaseNode
+
+from ..modules.context import Context
+from ..modules.graph_state import GraphState
 
 
 class GenerateSQLNode(BaseNode):
     def __init__(
         self,
+        context: Context,
         schemas: Dict[str, str],
         sql_generation_template: PromptTemplate,
     ) -> None:
-        super().__init__()
+        super().__init__(context=context)
         self.schemas = schemas
         self.sql_generation_template = sql_generation_template
 

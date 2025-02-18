@@ -2,6 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from .base_node import BaseNode
 
+from ..modules.context import Context
 from ..modules.graph_state import GraphState
 from ..modules.response_schema import QueryRouter
 
@@ -9,9 +10,10 @@ from ..modules.response_schema import QueryRouter
 class SelectDataNode(BaseNode):
     def __init__(
         self,
+        context: Context,
         source_routing_prompt: str,
     ) -> None:
-        super().__init__()
+        super().__init__(context=context)
         self.source_routing_prompt = source_routing_prompt
 
     def execute(

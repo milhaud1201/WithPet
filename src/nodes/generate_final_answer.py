@@ -2,15 +2,17 @@ from langchain_core.prompts import PromptTemplate
 
 from .base_node import BaseNode
 
+from ..modules.context import Context
 from ..modules.graph_state import GraphState
 
 
 class GenerateAnswerNode(BaseNode):
     def __init__(
         self,
+        context: Context,
         answer_generation_template: PromptTemplate,
     ) -> None:
-        super().__init__()
+        super().__init__(context=context)
         self.answer_generation_template = answer_generation_template
 
     def execute(
