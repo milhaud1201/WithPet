@@ -15,20 +15,19 @@ data:
 
 chat_llm:
   model: gpt-4o
-  temperature: 0
+  temperature: 0.0
   openai_api_key: ${openai_api_key}
 
 llm_stream:
   model: gpt-4o
   streaming: True
-  temperature: 0
+  temperature: 0.0
   openai_api_key: ${openai_api_key}
 
 search_llm:
   model: gpt-4o
-  temperature: 0
+  temperature: 0.0
   openai_api_key: ${openai_api_key}
-  temperature: 0.9
 
 serpapi_params:
   engine: google
