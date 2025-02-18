@@ -44,7 +44,7 @@ def main(
 
 
 if __name__ == "__main__":
-    CONFIG_PATH = "configs_yaml/"
+    CONFIG_PATH = "configs/"
     JOB_NAME = "withpet"
     CONFIG_NAME = "home.yaml"
     main(
