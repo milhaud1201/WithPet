@@ -29,8 +29,12 @@ search_llm:
   temperature: 0.0
   openai_api_key: ${openai_api_key}
 
-serpapi_params:
-  engine: google
+web_search:
+  translate_template: "You are a professional translator. Given the query '{query}', provide the best result of Korean to English."
+  search_template: "You are a search assistant. Given the query '{query}', provide the best search results and a summary."
+  serpapi_api_key: ${serpapi_api_key}
+  serpapi_params:
+    engine: google
 
 table_column_name: ingredients
 
