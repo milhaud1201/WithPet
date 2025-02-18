@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import re
 
 import pandas as pd
@@ -8,28 +10,14 @@ from ..modules.graph_state import GraphState
 from ..utils.data_utils import filter_csv_with_sql
 
 
-columns = {
-    "pet_places": [
-        "FACILITY_NM",
-        "ROAD_NAME_ADDRESS",
-        "LAND_LOT_ADDRESS",
-        "TEL_NO",
-        "HOMEPAGE_URL",
-        "HOLIDAY_INFORMATION",
-        "OPERATION_TIME_DISPLAY",
-        "PARKING_LOT_YN",
-        "USAGE_PRICE",
-        "POSIBLE_PET_SIZE",
-        "PET_LIMIT",
-        "PET_POSSIBLE_AT_INDOOR",
-        "PET_POSSIBLE_AT_OUTDOOR",
-        "FACILITY_INFORMATION",
-        "ADDITIONAL_CHARGE_ON_PET",
-    ]
-}
-
-
 class VerifySQLNode(BaseNode):
+    def __init__(
+        self,
+        source_columns: Dict[str, List[str]],
+    ) -> None:
+        super().__init__()
+        self.source_columns = source_columns
+
     def execute(
         self,
         state: GraphState,
@@ -57,7 +45,7 @@ class VerifySQLNode(BaseNode):
             columns_to_show = [
                 column
                 for column in filtered_data.columns
-                if column in columns[data_source]
+                if column in self.source_columns[data_source]
             ]
             return GraphState(
                 sql_status="data exists",
