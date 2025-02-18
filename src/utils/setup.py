@@ -94,11 +94,8 @@ class SetUp:
         )
         return prompt_template
 
-    def get_source_columns(
-        self,
-        source_type: str,
-    ) -> PromptTemplate:
+    def get_source_columns(self) -> PromptTemplate:
         source_columns: PromptTemplate = instantiate(
-            self.config.source_columns[source_type],
+            self.config.source_columns,
         )
         return source_columns
