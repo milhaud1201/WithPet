@@ -1,11 +1,11 @@
 import os
+import uuid
 
 import streamlit as st
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_openai import OpenAIEmbeddings
-from langgraph.graph.state import CompiledStateGraph
-from langgraph.errors import GraphRecursionError
+from langgraph.checkpoint.memory import MemorySaver
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -110,6 +110,44 @@ def paint_history() -> None:
         )
 
 
+def question_with_history(
+    question: str,
+    messages: list,
+) -> dict:
+    """
+    Generates enhanced input by adding previous conversation history as context to the current question.
+
+    Args:
+        question: Current user question
+        messages: List of conversation messages stored in session
+
+    Returns:
+        dict: Input dictionary containing the enhanced question
+    """
+    # Only add context if there is sufficient conversation history
+    if len(messages) > 2:
+        # Build conversation history string
+        conversation_history = ""
+        # Exclude last user question (already included in question)
+        for i in range(len(messages) - 1):
+            msg = messages[i]
+            role_prefix = "User: " if msg["role"] == "human" else "Assistant: "
+            conversation_history += f"{role_prefix}{msg['message']}\n\n"
+
+        # Generate expanded question with conversation context
+        enhanced_question = f"""Previous conversation:
+{conversation_history}
+
+User's new question: {question}
+
+Please answer the user's new question considering the conversation context above."""
+
+        return {"question": enhanced_question}
+    else:
+        # Use question as-is for first question
+        return {"question": question}
+
+
 @st.cache_resource
 def get_embeddings(api_key: str) -> OpenAIEmbeddings:
     return OpenAIEmbeddings(openai_api_key=api_key)
@@ -153,6 +191,8 @@ def load_workflow(
         prompt_type=config.prompt_type.question_refinement_template
     )
 
+    memory = MemorySaver()
+
     workflow = SQLWorkflow(
         context=context,
         source_routing_template=source_routing_template,
@@ -163,7 +203,7 @@ def load_workflow(
         question_refinement_template=question_refinement_template,
     )
 
-    app = workflow.setup_workflow()
+    app = workflow.setup_workflow(memory)
     return app
 
 
@@ -233,9 +273,12 @@ def pipeline(
     if "selected_options" not in st.session_state:
         st.session_state.selected_options = []
 
+    # Initialize thread_id in session state if not present
+    if "thread_id" not in st.session_state:
+        st.session_state.thread_id = str(uuid.uuid4())
+
     # Sidebar Design
     with st.sidebar:
-
         # Use `st.form` to prevent auto-rerun for filters
         with st.form("filter_form"):
             st.markdown(
@@ -346,10 +389,17 @@ def pipeline(
             placeholder.markdown(
                 "⌛질문에 해당하는 장소를 찾고 있습니다... 잠시만 기다려주세요."
             )
+
+        multi_turn_question = question_with_history(
+            st.session_state.input["question"], st.sesstion_state["messages"]
+        )
+
+        config_dict = {"configurable": {"thread_id": st.session_state.thread_id}, "recursion_limit": 10}
+        
         try:
             response = app.invoke(
                 st.session_state.inputs,
-                {"recursion_limit": 10},
+                config_dict,
             )
             if (
                 response["data_source"] == "NOT_RELEVANT"
