@@ -1,9 +1,11 @@
 import os
+import uuid
 
 import streamlit as st
 
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_openai import OpenAIEmbeddings
+from langgraph.checkpoint.memory import MemorySaver
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig
@@ -147,6 +149,8 @@ def pipeline(
         prompt_type=config.prompt_type.answer_generation_template
     )
 
+    memory = MemorySaver()
+
     workflow = SQLWorkflow(
         context=context,
         source_routing_prompt=source_routing_prompt,
@@ -156,7 +160,7 @@ def pipeline(
         answer_generation_template=answer_generation_template,
     )
 
-    app = workflow.setup_workflow()
+    app = workflow.setup_workflow(memory)
 
     st.markdown(
         """
@@ -213,6 +217,10 @@ def pipeline(
     # Initialize session state list for selected options
     if "selected_options" not in st.session_state:
         st.session_state.selected_options = []
+
+    # Initialize thread_id in session state if not present
+    if "thread_id" not in st.session_state:
+        st.session_state.thread_id = str(uuid.uuid4())
 
     # Sidebar Design
     with st.sidebar:
@@ -328,7 +336,36 @@ def pipeline(
                 "⌛질문에 해당하는 장소를 찾고 있습니다... 잠시만 기다려주세요."
             )
 
-        response = app.invoke(st.session_state.inputs)
+        # Add previous conversation history to current question
+        if "messages" in st.session_state and len(st.session_state["messages"]) > 2:
+            # Construct previous conversation history as a string
+            conversation_history = ""
+            # Exclude the last user question (already included in st.session_state.inputs["question"])
+            for i in range(len(st.session_state["messages"]) - 1):
+                msg = st.session_state["messages"][i]
+                role_prefix = "User: " if msg["role"] == "human" else "Assistant: "
+                conversation_history += f"{role_prefix}{msg['message']}\n\n"
+
+            # Generate enhanced question including conversation context
+            enhanced_question = f"""Previous conversation:
+{conversation_history}
+
+User's new question: {st.session_state.inputs["question"]}
+
+Please answer the user's new question considering the conversation context above."""
+
+            # Replace original question with enhanced question
+            enhanced_inputs = {"question": enhanced_question}
+        else:
+            # Use as-is if this is the first question
+            enhanced_inputs = st.session_state.inputs
+
+        # Use existing thread_id configuration
+        print(enhanced_inputs)
+        config_dict = {"configurable": {"thread_id": st.session_state.thread_id}}
+
+        # Make API call with enhanced input
+        response = app.invoke(enhanced_inputs, config_dict)
         print(response["answer"])
 
         if (
