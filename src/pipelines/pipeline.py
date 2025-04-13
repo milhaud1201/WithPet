@@ -110,6 +110,44 @@ def paint_history() -> None:
         )
 
 
+def question_with_history(
+    question: str,
+    messages: list,
+) -> dict:
+    """
+    Generates enhanced input by adding previous conversation history as context to the current question.
+
+    Args:
+        question: Current user question
+        messages: List of conversation messages stored in session
+
+    Returns:
+        dict: Input dictionary containing the enhanced question
+    """
+    # Only add context if there is sufficient conversation history
+    if len(messages) > 2:
+        # Build conversation history string
+        conversation_history = ""
+        # Exclude last user question (already included in question)
+        for i in range(len(messages) - 1):
+            msg = messages[i]
+            role_prefix = "User: " if msg["role"] == "human" else "Assistant: "
+            conversation_history += f"{role_prefix}{msg['message']}\n\n"
+
+        # Generate expanded question with conversation context
+        enhanced_question = f"""Previous conversation:
+{conversation_history}
+
+User's new question: {question}
+
+Please answer the user's new question considering the conversation context above."""
+
+        return {"question": enhanced_question}
+    else:
+        # Use question as-is for first question
+        return {"question": question}
+
+
 @st.cache_resource
 def get_embeddings(api_key: str) -> OpenAIEmbeddings:
     return OpenAIEmbeddings(openai_api_key=api_key)
@@ -224,7 +262,6 @@ def pipeline(
 
     # Sidebar Design
     with st.sidebar:
-
         # Use `st.form` to prevent auto-rerun for filters
         with st.form("filter_form"):
             st.markdown(
@@ -336,36 +373,16 @@ def pipeline(
                 "⌛질문에 해당하는 장소를 찾고 있습니다... 잠시만 기다려주세요."
             )
 
-        # Add previous conversation history to current question
-        if "messages" in st.session_state and len(st.session_state["messages"]) > 2:
-            # Construct previous conversation history as a string
-            conversation_history = ""
-            # Exclude the last user question (already included in st.session_state.inputs["question"])
-            for i in range(len(st.session_state["messages"]) - 1):
-                msg = st.session_state["messages"][i]
-                role_prefix = "User: " if msg["role"] == "human" else "Assistant: "
-                conversation_history += f"{role_prefix}{msg['message']}\n\n"
+        multi_turn_question = question_with_history(
+            st.session_state.input["question"], st.sesstion_state["messages"]
+        )
 
-            # Generate enhanced question including conversation context
-            enhanced_question = f"""Previous conversation:
-{conversation_history}
+        print(multi_turn_question)
 
-User's new question: {st.session_state.inputs["question"]}
-
-Please answer the user's new question considering the conversation context above."""
-
-            # Replace original question with enhanced question
-            enhanced_inputs = {"question": enhanced_question}
-        else:
-            # Use as-is if this is the first question
-            enhanced_inputs = st.session_state.inputs
-
-        # Use existing thread_id configuration
-        print(enhanced_inputs)
         config_dict = {"configurable": {"thread_id": st.session_state.thread_id}}
 
         # Make API call with enhanced input
-        response = app.invoke(enhanced_inputs, config_dict)
+        response = app.invoke(multi_turn_question, config_dict)
         print(response["answer"])
 
         if (
