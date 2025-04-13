@@ -1,38 +1,11 @@
-sql_retry_template:
+source_routing_template:
   _target_: langchain_core.prompts.PromptTemplate
   input_variables:
     - question
-    - data_source
-    - examples
-    - schema
-    - external_knowledge
-    - previous_answer
   template: |
-    You are an expert in generating SQL queries. Your task is to create SQL queries based on the user's question and the provided schema.
-
-    You must follow these rules:
-    ### Rules for SQL Generation:
-    1. **Match Columns to Conditions**: Identify relevant columns in the schema that correspond to the conditions in the user's query. Use only columns specified in the schema.
-    2. **Avoid Unnecessary Filters**: If part of the query has no directly corresponding column, do not add assumptions or irrelevant filters. Instead, retrieve all data using `SELECT * FROM {data_source}`.
-    3. **Include Only Relevant Columns in WHERE Clause**: Only include columns in the `WHERE` clause that are directly related to the query. Do not infer conditions beyond what is explicitly asked in the query.
-    4. **Filter Days with Specific Rules**: 
-        - For filtering days, use LIKE operation on the relevant column to match specific days:
-          - Saturday: `DAYTIME_COLUMN LIKE "%토%"`
-          - Sunday: `DAYTIME_COLUMN LIKE "%일요일%"`
-    5. **Ensure Schema Accuracy**: Always ensure the column names in the query match those defined in the schema exactly.
-    6. **SQL Tagging**: Wrap the generated SQL query between `<SQL>` and `</SQL>` tags to clearly separate it from other content.
-
-    In a prior turn, you have predicted a SQL, which returned no results. Your job now is to generate a new SQL to try again.
-    In general, you should try to RELAX constraints.
-
-    Table schema: {schema}
-    External knowledge: {external_knowledge}
-    Prior sql: {previous_answer}
-
-    For your information, I'll provide examples of query-answer pairs.
-    {examples}
-
-    <QUESTION> {question} </QUESTION>
+    You are an expert at routing a user question to the appropriate data source. The data sources are described below:
+    Return "PET_PLACES" if the query is about finding or asking for facilities such as hospitals, museums, cafes, restaurants, hotels, or any other physical locations where services or activities are provided.
+    Return "NOT_RELEVANT" if the query is not related to finding facilities, such as general knowledge questions or general chat.
 
 sql_generation_template:
   _target_: langchain_core.prompts.PromptTemplate
@@ -49,12 +22,36 @@ sql_generation_template:
     1. **Match Columns to Conditions**: Identify relevant columns in the schema that correspond to the conditions in the user's query. Use only columns specified in the schema.
     2. **Avoid Unnecessary Filters**: If part of the query has no directly corresponding column, do not add assumptions or irrelevant filters. Instead, retrieve all data using `SELECT * FROM {data_source}`.
     3. **Include Only Relevant Columns in WHERE Clause**: Only include columns in the `WHERE` clause that are directly related to the query. Do not infer conditions beyond what is explicitly asked in the query.
-    4. **Filter Days with Specific Rules**: 
-      - For filtering days, use LIKE operation on the relevant column to match specific days:
-        - Saturday: `DAYTIME_COLUMN LIKE "%토%"`
-        - Sunday: `DAYTIME_COLUMN LIKE "%일요일%"`
+    4. **Filter Opearing Time with Specific Rules**: 
+        - For filtering **operating days**, use `LIKE` to match specific days:
+          - Monday: `DAYTIME_COLUMN LIKE "%월%"`
+          - Weekend: `DAYTIME_COLUMN LIKE "%토%" AND DAYTIME_COLUMN LIKE "%일%"`
+        - For filtering **operating hours**, use:
+          - **If the user specifies a weekday**, use the corresponding column directly (e.g. OPEN_HOUR_SUN, CLOSE_HOUR_FRI).
+          - **If no specific weekday is mentioned**, dynamically select the column using `CASE-WHEN-THEN`:
+            CASE strftime('%w', 'now')
+                WHEN '0' THEN OPEN_HOUR_SUN
+                WHEN '1' THEN OPEN_HOUR_MON
+                WHEN '2' THEN OPEN_HOUR_TUE
+                WHEN '3' THEN OPEN_HOUR_WED
+                WHEN '4' THEN OPEN_HOUR_THU
+                WHEN '5' THEN OPEN_HOUR_FRI
+                WHEN '6' THEN OPEN_HOUR_SAT
+            END AS OPEN_HOUR,
+            CASE strftime('%w', 'now')
+              WHEN '0' THEN CLOSE_HOUR_SUN
+              WHEN '1' THEN CLOSE_HOUR_MON
+              WHEN '2' THEN CLOSE_HOUR_TUE
+              WHEN '3' THEN CLOSE_HOUR_WED
+              WHEN '4' THEN CLOSE_HOUR_THU
+              WHEN '5' THEN CLOSE_HOUR_FRI
+              WHEN '6' THEN CLOSE_HOUR_SAT
+          END AS CLOSE_HOUR
+        - If there are multiple conditions, combine them using `AND`.
+          - 24시간 영업, 금요일 영업: OPEN_HOUR = '00:00' AND CLOSE_HOUR = '24:00' AND OPENING_WEEKDAYS LIKE '%금%'
+          - 아침 9시 이전에 영업, 밤 10시 이후 영업: OPEN_HOUR <= '09:00' AND CLOSE_HOUR > '10:00'
     5. **Ensure Schema Accuracy**: Always ensure the column names in the query match those defined in the schema exactly.
-    6. **SQL Tagging**: Wrap the generated SQL query between `<SQL>` and `</SQL>` tags to clearly separate it from other content.
+    6. **Answer only with SQL**, without any extra format or explanation.
 
     Table schema: {schema}
     External knowledge: {external_knowledge}
@@ -62,7 +59,35 @@ sql_generation_template:
     For your information, I'll provide examples of query-answer pairs.
     {examples}
 
-    <QUESTION> {question} </QUESTION>
+    Question: {question}
+
+
+question_refinement_template:
+  _target_: langchain_core.prompts.PromptTemplate
+  input_variables:
+    - question
+    - generated_sql
+  template: |
+    Your task is to refine the user's query by removing context that is already included in the generated SQL filters.
+    You need to remove any conditions from the original query that are explicitly covered by the SQL query filters, while keeping any remaining descriptive or subjective elements.
+
+    ### Example:
+    #### Input:
+    User question: "서울 성동구에서 주차 가능한 분위기 좋은 카페"
+    Generated SQL:
+    SELECT * FROM PET_PLACES 
+    WHERE LAND_LOT_ADDRESS LIKE '%서울특별시 성동구%' 
+    AND CATEGORY_NM = '카페' 
+    AND PARKING_LOT_YN = 'Y'
+
+    #### Output:
+    Refined question: **"분위기 좋은"**
+
+    ### Task:
+    Given the user query: {question} 
+    And the SQL generated:
+    {generated_sql}
+
 
 answer_generation_template:
   _target_: langchain_core.prompts.PromptTemplate
@@ -77,7 +102,7 @@ answer_generation_template:
     Retrieved information is:
     {data}
     Please provide a detailed and concise answer in Korean.
-    Please include useful information like telephone number, homepage URL, and full address.
+    Please include useful information like telephone number, homepage URL, full address, and operating time.
     Format the number with dashes for readability (e.g., 02-1234-5678).
     If the data does not match the question completely, please explain the content of the retrieved data, but notify that it may not match the question.
     Only explain the data included in your answer.

@@ -1,4 +1,4 @@
-pet_places: |
+PET_PLACES: |
   - Table name: PET_PLACES
   - Description: This table contains detailed information about pet-friendly facilities, including their location, amenities, and rules for pet accommodation.
   - Columns:
@@ -13,18 +13,33 @@ pet_places: |
       - TEL_NO (TEXT): Contact phone number of the facility.
       - HOMEPAGE_URL (TEXT): Website URL of the facility.
       - HOLIDAY_INFORMATION (TEXT): Information about facility closure days.
-      - OPERATION_TIME (TEXT): Operating hours of the facility. (e.g. 월화수목금 10:00~19:00, 토일요일 10:00~19:00, 법정공휴일 10:00~17:00)
+      - OPEN_HOUR_MON (TEXT): Opening hours of the facility on Monday (format: hh:mm)
+      - CLOSE_HOUR_MON (TEXT): Closing hours of the facility on Monday (format: hh:mm)
+      - OPEN_HOUR_TUE (TEXT): Opening hours of the facility on Tuesday (format: hh:mm)
+      - CLOSE_HOUR_TUE (TEXT): Closing hours of the facility on Tuesday (format: hh:mm)
+      - OPEN_HOUR_WED (TEXT): Opening hours of the facility on Wednesday (format: hh:mm)
+      - CLOSE_HOUR_WED (TEXT): Closing hours of the facility on Wednesday (format: hh:mm)
+      - OPEN_HOUR_THU (TEXT): Opening hours of the facility on Thursday (format: hh:mm)
+      - CLOSE_HOUR_THU (TEXT): Closing hours of the facility on Thursday (format: hh:mm)
+      - OPEN_HOUR_FRI (TEXT): Opening hours of the facility on Friday (format: hh:mm)
+      - CLOSE_HOUR_FRI (TEXT): Closing hours of the facility on Friday (format: hh:mm)
+      - OPEN_HOUR_SAT (TEXT): Opening hours of the facility on Saturday (format: hh:mm)
+      - CLOSE_HOUR_SAT (TEXT): Closing hours of the facility on Saturday (format: hh:mm)
+      - OPEN_HOUR_SUN (TEXT): Opening hours of the facility on Sunday (format: hh:mm)
+      - CLOSE_HOUR_SUN (TEXT): Closing hours of the facility on Sunday (format: hh:mm)
+      - OPENING_WEEKDAYS (TEXT): Operating weekdays of the facility (e.g. 월화금토일)
       - OPERATION_TIME_DISPLAY (TEXT): Operating hours of the facility for display. Do not use this column in sql filtering.
       - PARKING_LOT_YN (TEXT): Indicates whether parking is available (Y/N).
-      - USAGE_PRICE (TEXT): Details about usage fees.
-      - POSIBLE_PET_SIZE (TEXT): Size limits for pets allowed entry.
-      - PET_LIMIT (TEXT): Restrictions or rules for pet accommodation.
-      - PET_POSSIBLE_AT_INDOOR (TEXT): Indicates whether pets are allowed indoors (Y/N).
-      - PET_POSSIBLE_AT_OUTDOOR (TEXT): Indicates whether pets are allowed outdoors (Y/N).
-      - FACILITY_INFORMATION (TEXT): Detailed description of the facility.
-      - ADDITIONAL_CHARGE_ON_PET (TEXT): Additional charges for pet accommodation.
+      - USAGE_PRICE (TEXT): Details about usage fees. Do not use this column in sql filtering.
+      - POSIBLE_PET_SIZE (TEXT): Size limits for pets allowed entry. Do not use this column in sql filtering.
+      - PET_LIMIT (TEXT): Restrictions or rules for pet accommodation. Do not use this column in sql filtering.
+      - PET_POSSIBLE_AT_INDOOR (TEXT): Indicates whether pets are allowed indoors (Y/N). Do not use this column in sql filtering.
+      - PET_POSSIBLE_AT_OUTDOOR (TEXT): Indicates whether pets are allowed outdoors (Y/N). Do not use this column in sql filtering.
+      - FACILITY_INFORMATION (TEXT): Detailed description of the facility. Do not use this column in sql filtering.
+      - ADDITIONAL_CHARGE_ON_PET (TEXT): Additional charges for pet accommodation. Do not use this column in sql filtering.
+      - SUMMARY (TEXT): Description or reviews of the facility Do not use this column in sql filtering.
 
-children_places: |
+CHILDREN_PLACES: |
   - Table name: CHILDREN_PLACES
   - Description: This is the location data of cultural facilities that can be accompanied by family children such as age of entry, parking, nursing room, stroller rental, and kids zone.
   - Columns:

@@ -10,7 +10,9 @@ from ..modules.context import Context
 from ..nodes.select_data_source import SelectDataNode
 from ..nodes.get_example import GetExampleNode
 from ..nodes.generate_sql import GenerateSQLNode
-from ..nodes.verify_sql import VerifySQLNode
+from ..nodes.execute_sql import ExecuteSQLNode
+from ..nodes.rewrite_question import RewriteQuestionNode
+from ..nodes.perform_rag import PerformRAGNode
 from ..nodes.generate_final_answer import (
     GenerateAnswerNode,
     HandleNoDataNode,
@@ -28,11 +30,12 @@ class SQLWorkflow:
     def __init__(
         self,
         context: Context,
-        source_routing_prompt: str,
+        source_routing_template: PromptTemplate,
         schemas: Dict[str, str],
         sql_generation_template: PromptTemplate,
         source_columns: Dict[str, List[str]],
         answer_generation_template: PromptTemplate,
+        question_refinement_template: PromptTemplate,
     ) -> None:
         """
         Args:
@@ -42,8 +45,9 @@ class SQLWorkflow:
         self.workflow = StateGraph(GraphState)
         self.app = None
         self.context = context
-        self.source_routing_prompt = source_routing_prompt
+        self.source_routing_template = source_routing_template
         self.schemas = schemas
+        self.question_refinement_template = question_refinement_template
         self.sql_generation_template = sql_generation_template
         self.source_columns = source_columns
         self.answer_generation_template = answer_generation_template
@@ -51,17 +55,24 @@ class SQLWorkflow:
     def setup_workflow(self, memory=None) -> CompiledStateGraph:
         select_data_node = SelectDataNode(
             context=self.context,
-            source_routing_prompt=self.source_routing_prompt,
+            schemas=self.schemas,
+            source_routing_template=self.source_routing_template,
         )
         get_example_node = GetExampleNode(context=self.context)
         generate_sql_node = GenerateSQLNode(
             context=self.context,
-            schemas=self.schemas,
             sql_generation_template=self.sql_generation_template,
         )
-        verify_sql_node = VerifySQLNode(
+        execute_sql_node = ExecuteSQLNode(
             context=self.context,
             source_columns=self.source_columns,
+        )
+        rewrite_question_node = RewriteQuestionNode(
+            context=self.context,
+            question_refinement_template=self.question_refinement_template,
+        )
+        perform_rag_node = PerformRAGNode(
+            context=self.context,
         )
         generate_answer_node = GenerateAnswerNode(
             context=self.context,
@@ -83,8 +94,16 @@ class SQLWorkflow:
             generate_sql_node.execute,
         )
         self.workflow.add_node(
-            "verify_sql",
-            verify_sql_node.execute,
+            "execute_sql",
+            execute_sql_node.execute,
+        )
+        self.workflow.add_node(
+            "rewrite_question",
+            rewrite_question_node.execute,
+        )
+        self.workflow.add_node(
+            "perform_rag",
+            perform_rag_node.execute,
         )
         self.workflow.add_node(
             "generate_final_answer",
@@ -105,7 +124,15 @@ class SQLWorkflow:
         )
         self.workflow.add_edge(
             "generate_sql",
-            "verify_sql",
+            "execute_sql",
+        )
+        self.workflow.add_edge(
+            "rewrite_question",
+            "perform_rag",
+        )
+        self.workflow.add_edge(
+            "perform_rag",
+            "generate_final_answer",
         )
         self.workflow.add_edge(
             "generate_final_answer",
@@ -120,17 +147,17 @@ class SQLWorkflow:
             "select_data_source",
             self.check_data_source,
             {
-                "pet_places": "get_example",
-                "not_relevant": "handle_not_relevant",
+                "PET_PLACES": "get_example",
+                "NOT_RELEVANT": "handle_not_relevant",
             },
         )
         self.workflow.add_conditional_edges(
-            "verify_sql",
+            "execute_sql",
             self.check_sql_status,
             {
-                "retry": "generate_sql",
-                "data exists": "generate_final_answer",
-                "no data": "handle_no_data",
+                "RETRY": "generate_sql",
+                "DATA_EXISTS": "rewrite_question",
+                "NO_DATA": "handle_no_data",
             },
         )
 

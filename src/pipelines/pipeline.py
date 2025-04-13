@@ -153,22 +153,21 @@ def get_embeddings(api_key: str) -> OpenAIEmbeddings:
     return OpenAIEmbeddings(openai_api_key=api_key)
 
 
-def pipeline(
+def load_workflow(
     config: DictConfig,
-) -> None:
+    stream: bool = True,
+) -> CompiledStateGraph:
+
     chat_callback_handler = ChatCallbackHandler()
     embeddings = get_embeddings(api_key=config.openai_api_key)
 
     setup = SetUp(config)
 
     llm = setup.get_llm()
-    llm_stream = setup.get_llm_stream(chat_callback_handler)
+    llm_stream = setup.get_llm_stream(chat_callback_handler) if stream else llm
     conn = setup.get_connection()
     vs_example = setup.get_vs_example(embeddings=embeddings)
-    if os.path.exists(config.vector_store_data):
-        vs_data = setup.get_vs_data(embeddings=embeddings)
-    else:
-        vs_data = None
+    vs_data = setup.get_vs_data(embeddings=embeddings)
 
     context = setup.get_context(
         llm=llm,
@@ -178,7 +177,9 @@ def pipeline(
         vs_data=vs_data,
     )
 
-    source_routing_prompt = config.prompts.source_routing_prompt
+    source_routing_template = setup.get_prompt_template(
+        prompt_type=config.prompt_type.source_routing_template
+    )
     sql_generation_template = setup.get_prompt_template(
         prompt_type=config.prompt_type.sql_generation_template
     )
@@ -186,19 +187,34 @@ def pipeline(
     answer_generation_template = setup.get_prompt_template(
         prompt_type=config.prompt_type.answer_generation_template
     )
+    question_refinement_template = setup.get_prompt_template(
+        prompt_type=config.prompt_type.question_refinement_template
+    )
 
     memory = MemorySaver()
 
     workflow = SQLWorkflow(
         context=context,
-        source_routing_prompt=source_routing_prompt,
+        source_routing_template=source_routing_template,
         schemas=config.schemas,
         sql_generation_template=sql_generation_template,
         source_columns=source_columns,
         answer_generation_template=answer_generation_template,
+        question_refinement_template=question_refinement_template,
     )
 
     app = workflow.setup_workflow(memory)
+    return app
+
+
+def pipeline(
+    config: DictConfig,
+) -> None:
+
+    app = load_workflow(
+        config=config,
+        stream=True,
+    )
 
     st.markdown(
         """
@@ -228,9 +244,10 @@ def pipeline(
         ">
             <h5 style="color: #FF6B00;">💡 이용 가능한 질문 예시</h5>
             <ul style="font-size: 16px; color: #333;">
-                <li>🏥 <b>강남구 신사동</b>에 <b>일요일</b>에도 영업하는 <b>동물병원</b>이 있나요?</li>
-                <li>☕ <b>부산 동구</b>에 <b>주차 가능한</b> <b>카페</b>를 알려주세요.</li>
+                <li>🏥 <b>강남구 신사동</b>에 <b>일요일 오후 1시에</b> 영업하는 <b>동물병원</b>이 있나요?</li>
+                <li>☕ <b>부산 동구</b>에 <b>주차 가능</b>한 <b>카페</b>를 알려주세요.</li>
                 <li>🏡 <b>인천</b>에 있는 <b>반려동물 추가 요금 없는 펜션</b> 찾아줘.</li>
+                <li>✂️ <b>종로구</b>에서 <b>저녁 7시</b>에 <b>미용</b> 가능한 곳</li>
             </ul>
         </div>
         """,
@@ -300,7 +317,6 @@ def pipeline(
                 [
                     "☕ 카페",
                     "🏡 펜션",
-                    "🏨 호텔",
                     "🏥 동물병원",
                     "💊 동물약국",
                     "✂️ 미용",
@@ -310,7 +326,6 @@ def pipeline(
                 index=[
                     "카페",
                     "펜션",
-                    "호텔",
                     "동물병원",
                     "동물약국",
                     "미용",
@@ -324,6 +339,8 @@ def pipeline(
                 "🚗 주차 가능": "주차 가능",
                 "🗓️ 주말 운영": "주말 운영",
                 "⏰ 24시간 운영": "24시간 운영",
+                "⛅ 아침 9시 이전 영업": "아침 9시 이전 영업",
+                "🌙 밤 10시 이후 영업": "밤 10시 이후 영업",
                 "🪙 반려동물 추가 요금 없음": "반려동물 추가 요금 없음",
                 "🐈 반려동물 크기 제한 없음": "반려동물 크기 제한 없음",
             }
@@ -377,20 +394,25 @@ def pipeline(
             st.session_state.input["question"], st.sesstion_state["messages"]
         )
 
-        print(multi_turn_question)
-
-        config_dict = {"configurable": {"thread_id": st.session_state.thread_id}}
-
-        # Make API call with enhanced input
-        response = app.invoke(multi_turn_question, config_dict)
-        print(response["answer"])
-
-        if (
-            response["data_source"] == "not_relevant"
-            or response["sql_status"] == "no data"
-        ):
+        config_dict = {"configurable": {"thread_id": st.session_state.thread_id}, "recursion_limit": 10}
+        
+        try:
+            response = app.invoke(
+                st.session_state.inputs,
+                config_dict,
+            )
+            if (
+                response["data_source"] == "NOT_RELEVANT"
+                or response["sql_status"] == "NO_DATA"
+            ):
+                send_message(
+                    response["answer"],
+                    "ai",
+                    placeholder,
+                )
+        except GraphRecursionError:
             send_message(
-                response["answer"],
+                "질문 처리 중 오류가 발생했습니다. 다시 시도해주세요.",
                 "ai",
                 placeholder,
             )
