@@ -6,11 +6,14 @@ import streamlit as st
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain_openai import OpenAIEmbeddings
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph.state import CompiledStateGraph
+from langgraph.errors import GraphRecursionError
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
 from ..utils.setup import SetUp
+from ..utils.conversation_utils import get_history
 from ..workflows.sql_workflow import SQLWorkflow
 
 
@@ -110,44 +113,6 @@ def paint_history() -> None:
         )
 
 
-def question_with_history(
-    question: str,
-    messages: list,
-) -> dict:
-    """
-    Generates enhanced input by adding previous conversation history as context to the current question.
-
-    Args:
-        question: Current user question
-        messages: List of conversation messages stored in session
-
-    Returns:
-        dict: Input dictionary containing the enhanced question
-    """
-    # Only add context if there is sufficient conversation history
-    if len(messages) > 2:
-        # Build conversation history string
-        conversation_history = ""
-        # Exclude last user question (already included in question)
-        for i in range(len(messages) - 1):
-            msg = messages[i]
-            role_prefix = "User: " if msg["role"] == "human" else "Assistant: "
-            conversation_history += f"{role_prefix}{msg['message']}\n\n"
-
-        # Generate expanded question with conversation context
-        enhanced_question = f"""Previous conversation:
-{conversation_history}
-
-User's new question: {question}
-
-Please answer the user's new question considering the conversation context above."""
-
-        return {"question": enhanced_question}
-    else:
-        # Use question as-is for first question
-        return {"question": question}
-
-
 @st.cache_resource
 def get_embeddings(api_key: str) -> OpenAIEmbeddings:
     return OpenAIEmbeddings(openai_api_key=api_key)
@@ -157,7 +122,6 @@ def load_workflow(
     config: DictConfig,
     stream: bool = True,
 ) -> CompiledStateGraph:
-
     chat_callback_handler = ChatCallbackHandler()
     embeddings = get_embeddings(api_key=config.openai_api_key)
 
@@ -210,7 +174,6 @@ def load_workflow(
 def pipeline(
     config: DictConfig,
 ) -> None:
-
     app = load_workflow(
         config=config,
         stream=True,
@@ -390,15 +353,17 @@ def pipeline(
                 "⌛질문에 해당하는 장소를 찾고 있습니다... 잠시만 기다려주세요."
             )
 
-        multi_turn_question = question_with_history(
-            st.session_state.input["question"], st.sesstion_state["messages"]
-        )
-
-        config_dict = {"configurable": {"thread_id": st.session_state.thread_id}, "recursion_limit": 10}
-        
         try:
+            history_message = get_history(
+                st.session_state.inputs["question"], st.session_state["messages"]
+            )
+
+            config_dict = {
+                "configurable": {"thread_id": st.session_state.thread_id},
+                "recursion_limit": 10,
+            }
             response = app.invoke(
-                st.session_state.inputs,
+                history_message,
                 config_dict,
             )
             if (
